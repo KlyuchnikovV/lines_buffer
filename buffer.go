@@ -29,6 +29,7 @@ func (b *Buffer) InsertRune(r rune) {
 			[]byte(b.lines[b.row])[b.column:]...,
 		),
 	)
+	b.column++
 }
 
 func (b *Buffer) NewLine() {
