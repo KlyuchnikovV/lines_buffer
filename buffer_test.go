@@ -123,7 +123,7 @@ func TestInsertRune(t *testing.T) {
 			expectedRow:    0,
 			expectedColumn: 12,
 			action: func() {
-				b.InsertRune('!')
+				b.Insert("!")
 			},
 		},
 		{
@@ -133,7 +133,49 @@ func TestInsertRune(t *testing.T) {
 			expectedColumn: 0,
 			action: func() {
 				b.SetPosition(0, 7)
-				b.InsertRune('\n')
+				b.Insert("\n")
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			tC.action()
+			assert.Equal(t, string(tC.expected), b.String())
+			assert.Equal(t, tC.expectedRow, b.row)
+			assert.Equal(t, tC.expectedColumn, b.column)
+		})
+	}
+}
+
+func Test(t *testing.T) {
+	var originalText = []byte("Hello, world!")
+	b := NewBuffer(string(originalText))
+
+	testCases := []struct {
+		desc           string
+		expected       string
+		expectedRow    int
+		expectedColumn int
+		action         func()
+	}{
+		{
+			desc:           "Insert '\n' symbol in middle",
+			expected:       "Hello, \nworld!",
+			expectedRow:    1,
+			expectedColumn: 0,
+			action: func() {
+				b.SetPosition(0, 7)
+				b.NewLine()
+			},
+		},
+		{
+			desc:           "Insert '\n' symbol in beginning",
+			expected:       "\nHello, \nworld!",
+			expectedRow:    1,
+			expectedColumn: 0,
+			action: func() {
+				b.SetPosition(0, 0)
+				b.NewLine()
 			},
 		},
 	}

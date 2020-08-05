@@ -1,6 +1,9 @@
 package lines_buffer
 
-import "strings"
+import (
+	"log"
+	"strings"
+)
 
 type Buffer struct {
 	lines       []string
@@ -16,28 +19,34 @@ func NewBuffer(s string) *Buffer {
 	}
 }
 
-func (b *Buffer) InsertRune(r rune) {
-	if r == '\n' {
+func (b *Buffer) Insert(s string) {
+	if s == "\n" {
 		b.NewLine()
 		return
 	}
 	b.lines[b.row] = string(
 		append(
 			append(
-				[]byte(b.lines[b.row])[:b.column], byte(r),
+				[]byte(b.lines[b.row])[:b.column], []byte(s)...,
 			),
 			[]byte(b.lines[b.row])[b.column:]...,
 		),
 	)
-	b.column++
+	b.column += len(s)
 }
 
 func (b *Buffer) NewLine() {
 	var newLine string
 	b.lines[b.row], newLine = b.lines[b.row][:b.column], b.lines[b.row][b.column:]
-	b.lines = append(b.lines, newLine)
-	b.column = 0
-	b.row++
+	var originalLines = b.Lines()[b.row+1:]
+	b.lines = append(
+		append(
+			b.lines[:b.row+1],
+			newLine,
+		),
+		originalLines...,
+	)
+	b.NextRune()
 }
 
 func (b *Buffer) DeleteBackward() {
@@ -50,6 +59,7 @@ func (b *Buffer) DeleteBackward() {
 		b.column = len(b.CurrentRow())
 		b.mergeLineWithNext()
 	} else {
+		log.Printf("BUFFER: r: %d, c: %d", b.row, b.column)
 		b.lines[b.row] = string(append([]byte(b.CurrentRow())[:b.column-1], []byte(b.CurrentRow())[b.column:]...))
 		b.column--
 	}
@@ -91,7 +101,9 @@ func (b *Buffer) CurrentRow() string {
 }
 
 func (b *Buffer) Lines() []string {
-	return b.lines
+	var tempLines = make([]string, len(b.lines))
+	copy(tempLines, b.lines)
+	return tempLines
 }
 
 func (b *Buffer) RowNum() int {
@@ -124,7 +136,7 @@ func (b *Buffer) NextLine() {
 
 func (b *Buffer) NextRune() {
 	if b.column == len(b.CurrentRow()) {
-		b.NewLine()
+		b.NextLine()
 		b.column = 0
 	} else {
 		b.column++
